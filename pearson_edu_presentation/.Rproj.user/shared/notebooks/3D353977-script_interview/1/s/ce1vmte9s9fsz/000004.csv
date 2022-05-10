@@ -1,0 +1,7 @@
+"0","grade_main %>% 
+  select(award_title, unit_code) %>% 
+  group_by(award_title, unit_code) %>% 
+  summarise(count = n())
+"
+"1","`summarise()` has grouped output by 'award_title'. You can override using the `.groups` argument.
+"

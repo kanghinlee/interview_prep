@@ -1,0 +1,171 @@
+---
+title: "Pearson_Interview_Data"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(here)
+```
+
+```{r}
+raw_grade_main <- readxl::read_xlsx("Data file for Technical Data Analyst presentation May 2022.xlsx")
+
+clean_grade_main <- janitor::clean_names(raw_grade_main)
+```
+
+```{r}
+grade_main <- clean_grade_main %>% 
+  select(unit_code, school_number, student_number, grade, course_number, btec_title_code, booking_dtime_trunc, award_title, linked_unit_code, total_internal_unit_grades)
+```
+
+```{r}
+grade_main %>% 
+  select(school_number, award_title) %>% 
+  group_by(school_number, award_title) %>% 
+  summarise(award_title_count = n())
+
+# School Numbers
+grade_main %>% 
+  select(school_number) %>% 
+  group_by(school_number) %>% 
+  summarise(count = n()) %>% 
+  nrow()
+
+# Participate count, remove and n.a. student numbers
+grade_main %>% 
+  select(student_number)%>% 
+  drop_na() %>% 
+  group_by(student_number) %>% 
+  summarise(count = n()) %>% 
+  nrow()
+
+
+```
+
+```{r}
+# Show Award title against unit_code against code
+grade_main %>% 
+  select(award_title, unit_code) %>% 
+  group_by(award_title, unit_code) %>% 
+  summarise(count = n())
+```
+```{r}
+# Show Award title against unit_code against code
+award_title_count <- grade_main %>% 
+  select(award_title, unit_code) %>% 
+  group_by(award_title) %>% 
+  summarise(count = n()) %>% 
+  arrange(desc(count))
+```
+
+```{r}
+# Show Award title against unit_code against code (Collapse Performance Art)
+award_title_count_combine_art <- grade_main %>% 
+  select(award_title, unit_code) %>% 
+  group_by(award_title) %>% 
+  mutate(award_title = replace(award_title,award_title == "PERFORMING ARTS (WITH A DANCE APPROACH)","PERFORMING ARTS" ),
+         award_title = replace(award_title,award_title == "PERFORMING ARTS (WITH A PRODUCTION APPROACH)", "PERFORMING ARTS" )) %>% 
+  summarise(count = n()) %>% 
+  arrange(desc(count))
+
+```
+
+```{r}
+
+# Show Award title against unit_code against code (Collapse Performance Art)
+award_title_count_tot <- grade_main %>% 
+  select(award_title, unit_code) %>% 
+  group_by(award_title) %>% 
+  summarise(count = n()) %>% 
+  arrange(desc(count)) %>% 
+  filter(grepl("^PERFORMING", award_title))
+
+```
+
+
+```{r}
+# Remove any NA Grade
+grade_count_wide <- grade_main %>% 
+  select(award_title, grade) %>% 
+  drop_na() %>% 
+  mutate(award_title = replace(award_title,award_title == "PERFORMING ARTS (WITH A DANCE APPROACH)","PERFORMING ARTS" ),
+         award_title = replace(award_title,award_title == "PERFORMING ARTS (WITH A PRODUCTION APPROACH)", "PERFORMING ARTS" )) %>% 
+  group_by(award_title, grade) %>% 
+  summarise(grade_counter = n()) %>% 
+  pivot_wider(names_from = grade, values_from =  grade_counter)
+
+```
+
+```{r}
+# Remove any NA Grade
+grade_total_count <- grade_main %>% 
+    select(award_title, grade) %>% 
+    drop_na() %>% 
+    mutate(award_title = replace(award_title,award_title == "PERFORMING ARTS (WITH A DANCE APPROACH)","PERFORMING ARTS" ),
+         award_title = replace(award_title,award_title == "PERFORMING ARTS (WITH A PRODUCTION APPROACH)", "PERFORMING ARTS" )) %>%
+  group_by(award_title) %>% 
+    summarise(grade_counter = n())
+
+grade_count_join <- grade_count_wide %>% 
+  left_join(grade_total_count, by = "award_title") %>% 
+  rename("total_count" = "grade_counter") %>% 
+  janitor::clean_names() %>% 
+  mutate(u = coalesce(u, 0),
+         perce_1 = round((x1/total_count)*100, digits = 1),
+         perce_pass = round(((total_count - u)/total_count)*100, digits = 1)
+         )
+grade_percen_1 <- grade_count_join %>% 
+  arrange(desc(perce_1)) %>% 
+  select(award_title, perce_1) %>% 
+  rename("top_score_rate" = "perce_1")
+
+grade_percen_pass <- grade_count_join %>% 
+  arrange(desc(perce_pass)) %>% 
+  select(award_title, perce_pass) %>% 
+  rename("pass_rate" = "perce_pass")
+
+```
+
+```{r}
+art_array <- c("PERFORMING ARTS (WITH A DANCE APPROACH)","PERFORMING ARTS", "PERFORMING ARTS (WITH A PRODUCTION APPROACH)")
+
+art_count <- grade_main %>% 
+  select(award_title, grade) %>% 
+  filter(award_title == art_array)
+
+art_count_tot <- art_count %>% 
+  group_by(award_title) %>% 
+  summarise(count_tot = n())
+  
+art_count_wide <- art_count %>% 
+  mutate(grade = coalesce(grade, "no_grade")) %>% 
+  group_by(award_title, grade) %>% 
+  summarise(count = n()) %>% 
+  pivot_wider(names_from = grade, values_from =  count) %>% 
+  right_join(art_count_tot, by = "award_title")
+```
+
+```{r}
+
+
+
+unit_code_count <- grade_main %>% 
+  select(unit_code, award_title, grade)
+
+
+unit_code_count_tot <- unit_code_count %>% 
+  group_by(unit_code, award_title) %>% 
+  summarise(count_tot = n())
+
+unit_code_count_main <- unit_code_count %>% 
+  group_by(unit_code, award_title, grade) %>% 
+  mutate(grade = coalesce(grade, "no_grade")) %>% 
+  summarise(count = n()) %>% 
+  pivot_wider(names_from = grade, values_from =  count) %>% 
+  arrange(award_title) %>% 
+  right_join(unit_code_count_tot, by = c("unit_code", "award_title"))
+
+unit_code_count_main[is.na(unit_code_count_main)] <- 0
+```
+
