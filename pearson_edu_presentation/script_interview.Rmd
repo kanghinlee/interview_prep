@@ -9,8 +9,7 @@ library(here)
 ```
 
 ```{r}
-raw_grade_main <- readxl::read_xlsx("Data file for Technical Data Analyst presentation May 2022.xlsx")
-
+raw_grade_main <- readxl::read_xlsx(here("data/Data file for Technical Data Analyst presentation May 2022.xlsx"))
 clean_grade_main <- janitor::clean_names(raw_grade_main)
 ```
 
@@ -62,7 +61,8 @@ award_title_count <- grade_main %>%
 ```{r}
 # Show Award title against unit_code against code (Collapse Performance Art)
 award_title_count_combine_art <- grade_main %>% 
-  select(award_title, unit_code) %>% 
+  select(award_title, unit_code, grade) %>% 
+  drop_na() %>% 
   group_by(award_title) %>% 
   mutate(award_title = replace(award_title,award_title == "PERFORMING ARTS (WITH A DANCE APPROACH)","PERFORMING ARTS" ),
          award_title = replace(award_title,award_title == "PERFORMING ARTS (WITH A PRODUCTION APPROACH)", "PERFORMING ARTS" )) %>% 

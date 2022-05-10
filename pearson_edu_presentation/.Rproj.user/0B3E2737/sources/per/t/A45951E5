@@ -1,9 +1,9 @@
 {
     "id": "A45951E5",
-    "path": "E:/Github/interview_pearson_edu/script_interview.Rmd",
+    "path": "E:/Github/interview_prep/pearson_edu_presentation/script_interview.Rmd",
     "project_path": "script_interview.Rmd",
     "type": "r_markdown",
-    "hash": "2298805776",
+    "hash": "658927930",
     "contents": "",
     "dirty": false,
     "created": 1652099621269.0,
@@ -14,15 +14,15 @@
         "chunk_output_type": "inline",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "161,46",
-        "scrollLine": "149"
+        "cursorPosition": "58,3",
+        "scrollLine": "51"
     },
     "folds": "",
-    "lastKnownWriteTime": 1652186769,
+    "lastKnownWriteTime": 1652188418,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1652186769867,
+    "last_content_update": 1652188418362,
     "read_only": false,
     "read_only_alternatives": []
 }
